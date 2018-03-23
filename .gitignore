@@ -1,0 +1,7 @@
+.idea
+.env
+.dump
+.tmp
+/var/
+/vendor/
+/backup

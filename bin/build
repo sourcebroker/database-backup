@@ -1,0 +1,118 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+define('REPOSITORY_DIR', __DIR__ . '/../.tmp/repository');
+define('REPOSITORY', 'git@github.com:sourcebroker/database-backup-distribution.git');
+define('ROOT', realpath(__DIR__ . '/..'));
+
+if (file_exists(REPOSITORY_DIR)) {
+    exec(sprintf('rm -rf %s', REPOSITORY_DIR));
+}
+mkdir(REPOSITORY_DIR, 0777, true);
+exec(sprintf(
+    'git clone --branch %s %s %s 2>&1'
+    , 'master'
+    , REPOSITORY
+    , REPOSITORY_DIR
+));
+
+$git = new \SourceBroker\DatabaseBackup\Vcs\Driver\GitDriver(REPOSITORY);
+$ver = new \SourceBroker\DatabaseBackup\Vcs\Version();
+
+$opt = getopt('v::',['create-tag']);
+$version = 'dev-master';
+if (array_key_exists('v', $opt)) {
+    $version = $opt['v'];
+    if (!preg_match('/^\d+\.\d+\.\d+(-[\d\w\.]+)?$/i', $version)) {
+        die("Version number must follow semantic versioning.\n");
+    }
+} else {
+    $version = $git->getLatestTag();
+    if (isset($opt['create-tag'])) {
+        $version = $ver->increase($version, \SourceBroker\DatabaseBackup\Vcs\Version::INCREASE_PATCH);
+    }
+}
+
+chdir(ROOT);
+exec('composer install --no-dev');
+exec('git config user.name', $userName);
+exec('git config user.email', $userEmail);
+
+$git->config([
+    'user.name' => $userName[0],
+    'user.email' => $userEmail[0]
+], REPOSITORY_DIR);
+
+$pharName = "backup.phar";
+$pharFile = ROOT . '/' . $pharName;
+
+if (file_exists($pharFile)) {
+    unlink($pharFile);
+}
+
+$phar = new \Phar($pharFile, 0, $pharName);
+$phar->setSignatureAlgorithm(\Phar::SHA1);
+
+$phar->startBuffering();
+
+$finder = new Symfony\Component\Finder\Finder();
+$finder->files()
+    ->ignoreVCS(true)
+    ->name('*.php')
+    ->name('*.json')
+    ->name('*.exe')
+    ->notName('build')
+    ->exclude('phpunit')
+    ->exclude('var')
+    ->exclude('src/Vcs')
+    ->exclude('Tests')
+    ->exclude('test')
+    ->exclude('tests')
+    ->exclude('phpspec')
+    ->in(ROOT);
+
+foreach ($finder as $fileInfo) {
+    $file = str_replace(ROOT, '', $fileInfo->getRealPath());
+
+    echo "Add file: " . $file . "\n";
+
+    $phar->addFile($fileInfo->getRealPath(), $file);
+}
+
+// Add bin/backup file
+$depContent = file_get_contents(ROOT . '/bin/backup');
+$depContent = str_replace("#!/usr/bin/env php\n", '', $depContent);
+$depContent = str_replace("'master'", "'$version'", $depContent);
+$depContent = str_replace('__FILE__', 'str_replace("phar://", "", Phar::running())', $depContent);
+$phar->addFromString('bin/backup', $depContent);
+
+$stub = <<<STUB
+#!/usr/bin/env php
+<?php
+Phar::mapPhar('{$pharName}');
+require 'phar://{$pharName}/bin/backup';
+__HALT_COMPILER();
+STUB;
+
+$phar->setStub($stub);
+$phar->stopBuffering();
+unset($phar);
+
+exec('composer install');
+
+if (isset($opt['create-tag'])) {
+    rename($pharName, REPOSITORY_DIR . '/backup');
+    chmod(REPOSITORY_DIR . '/backup', 0755);
+    $git->checkoutDistBranch(REPOSITORY_DIR);
+    $git->commit(['backup'], REPOSITORY_DIR, "Database backup {$version}");
+    $git->tag($version, 'master', REPOSITORY_DIR);
+    echo "New tag {$version} was created successfully\n";
+} else {
+    rename($pharName, 'backup');
+    chmod('backup', 0755);
+}
+
+exec(sprintf('rm -rf %s', REPOSITORY_DIR));
+echo "$pharName was created successfully.\n";

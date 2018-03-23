@@ -1,0 +1,37 @@
+#!/usr/bin/env php
+<?php
+
+// Check for php7
+if (!defined('PHP_MAJOR_VERSION') || PHP_MAJOR_VERSION < 7) {
+    die(
+        'Upgrade to php7' . PHP_EOL .
+        'Database backup supports only php7 and above.' . PHP_EOL
+    );
+}
+
+$autoload = [
+    __DIR__ . '/../../../autoload.php',
+    __DIR__ . '/../vendor/autoload.php'
+];
+
+for ($i = 0; $i < count($autoload); $i++) {
+    if (file_exists($autoload[$i])) {
+        require $autoload[$i];
+        if (strlen(Phar::running()) > 0) {
+            define('DB_BACKUP_ROOT_DIR', realpath('.'));
+        } else {
+            define('DB_BACKUP_ROOT_DIR', dirname(realpath($autoload[$i]), 2));
+        }
+        $loaded = true;
+        break;
+    }
+}
+
+use Symfony\Component\Console\Application;
+
+$application = new Application();
+$application->setName('Database backup');
+$application->setVersion('master');
+$application->add(new \SourceBroker\DatabaseBackup\Command\DatabaseBackupCommand());
+$application->add(new \SourceBroker\DatabaseBackup\Command\DefaultConfigurationCommand());
+$application->run();
