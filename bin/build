@@ -37,13 +37,6 @@ if (array_key_exists('v', $opt)) {
 
 chdir(ROOT);
 exec('composer install --no-dev');
-exec('git config user.name', $userName);
-exec('git config user.email', $userEmail);
-
-$git->config([
-    'user.name' => $userName[0],
-    'user.email' => $userEmail[0]
-], REPOSITORY_DIR);
 
 $pharName = "backup.phar";
 $pharFile = ROOT . '/' . $pharName;
@@ -103,6 +96,13 @@ unset($phar);
 exec('composer install');
 
 if (isset($opt['create-tag'])) {
+    exec('git config user.name', $userName);
+    exec('git config user.email', $userEmail);
+
+    $git->config([
+        'user.name' => $userName[0],
+        'user.email' => $userEmail[0]
+    ], REPOSITORY_DIR);
     rename($pharName, REPOSITORY_DIR . '/backup');
     chmod(REPOSITORY_DIR . '/backup', 0755);
     $git->checkoutDistBranch(REPOSITORY_DIR);
