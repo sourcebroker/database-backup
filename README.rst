@@ -55,7 +55,7 @@ Simplest config.yaml. The config below will do backup at 1 am with 2 day rotatio
     dayilyAt1am:
       cron:
         howMany: 2
-        cron: 0 1 * * *
+        pattern: 0 1 * * *
 
 You can add more configs into one file. The config below will do backup at 1am with 7 days rotation
 and at every 15 min of hour with rotation last 5 hours.
@@ -66,8 +66,8 @@ and at every 15 min of hour with rotation last 5 hours.
    dayily:
      cron:
        howMany: 7
-       cron: 0 1 * * *
+       pattern: 0 1 * * *
    hourly:
      cron:
        howMany: 5
-       cron: 15 * * * *
+       pattern: 15 * * * *
