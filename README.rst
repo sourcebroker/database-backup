@@ -33,7 +33,7 @@ Features
 Installation
 ------------
 
- ::
+::
 
   composer require sourcebroker/database-backup
 
@@ -42,34 +42,32 @@ Usage
 -----
 
 Simplest usage:
- ::
+
+::
 
   php bin/backup config.yaml
 
 Simplest config.yaml. The config below will do backup at 1 am with 2 day rotation.
 
- ::
+::
 
-    configs:
-      dayilyAt1am:
-        cron:
-          howMany: 2
-          cron: 0 1 * * *
-
-
+  configs:
+    dayilyAt1am:
+      cron:
+        howMany: 2
+        cron: 0 1 * * *
 
 You can add more configs into one file. The config below will do backup at 1am with 7 days rotation
 and at every 15 min of hour with rotation last 5 hours.
 
- ::
+::
 
-   configs:
-     dayily:
-       cron:
-         howMany: 7
-         cron: 0 1 * * *
-     hourly:
-       cron:
-         howMany: 5
-         cron: 15 * * * *
-
+  configs:
+   dayily:
+     cron:
+       howMany: 7
+       cron: 0 1 * * *
+   hourly:
+     cron:
+       howMany: 5
+       cron: 15 * * * *
