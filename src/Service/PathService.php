@@ -19,7 +19,7 @@ class PathService
     {
         if (!$this->isAbsolutePath($path)) {
             if ($this->isHomePath($path)) {
-                $path = str_replace('~',$this->homeDirectory(), $path);
+                $path = str_replace('~', $this->homeDirectory(), $path);
             } else {
                 $path = DB_BACKUP_ROOT_DIR . '/' . $path;
             }
@@ -32,32 +32,58 @@ class PathService
         return realpath($path);
     }
 
-    public function checkHtaccessFile($path)
+    /**
+     * @param $path
+     * @return bool
+     * @throws Exception
+     */
+    protected function isAbsolutePath($path)
     {
-        if (!file_exists($path . '/.htaccess')) {
-            file_put_contents($path . '/.htaccess', "Order Allow,Deny \nDeny from all");
+        if ($path === null || $path === '') {
+            throw new Exception("Empty path");
         }
+        return $path[0] === DIRECTORY_SEPARATOR || preg_match('~\A[A-Z]:(?![^/\\\\])~i', $path) > 0;
+    }
+
+    /**
+     * @param $path
+     * @return bool
+     * @throws Exception
+     */
+    protected function isHomePath($path)
+    {
+        if ($path === null || $path === '') {
+            throw new Exception("Empty path");
+        }
+        return $path[0] == '~';
     }
 
     /**
      * Return the user's home directory.
      */
-    public function homeDirectory() {
+    public function homeDirectory()
+    {
         // Cannot use $_SERVER superglobal since that's empty during UnitUnishTestCase
         // getenv('HOME') isn't set on Windows and generates a Notice.
         $home = getenv('HOME');
         if (!empty($home)) {
             // home should never end with a trailing slash.
             $home = rtrim($home, '/');
-        }
-        elseif (!empty($_SERVER['HOMEDRIVE']) && !empty($_SERVER['HOMEPATH'])) {
+        } elseif (!empty($_SERVER['HOMEDRIVE']) && !empty($_SERVER['HOMEPATH'])) {
             // home on windows
             $home = $_SERVER['HOMEDRIVE'] . $_SERVER['HOMEPATH'];
             // If HOMEPATH is a root directory the path can end with a slash. Make sure
             // that doesn't happen.
             $home = rtrim($home, '\\/');
         }
-        return empty($home) ? NULL : $home;
+        return empty($home) ? null : $home;
+    }
+
+    public function checkHtaccessFile($path)
+    {
+        if (!file_exists($path . '/.htaccess')) {
+            file_put_contents($path . '/.htaccess', "Order Allow,Deny \nDeny from all");
+        }
     }
 
     /**
@@ -111,25 +137,5 @@ class PathService
         }
 
         return $realPath;
-    }
-
-    /**
-     * @param $path
-     * @return bool
-     * @throws Exception
-     */
-    protected function isAbsolutePath($path) {
-        if($path === null || $path === '') throw new Exception("Empty path");
-        return $path[0] === DIRECTORY_SEPARATOR || preg_match('~\A[A-Z]:(?![^/\\\\])~i',$path) > 0;
-    }
-
-    /**
-     * @param $path
-     * @return bool
-     * @throws Exception
-     */
-    protected function isHomePath($path) {
-        if($path === null || $path === '') throw new Exception("Empty path");
-        return $path[0] == '~';
     }
 }

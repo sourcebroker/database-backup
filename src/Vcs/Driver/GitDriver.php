@@ -1,4 +1,5 @@
 <?php
+
 namespace SourceBroker\DatabaseBackup\Vcs\Driver;
 
 use Webcreate\Vcs\Common\Adapter\CliAdapter;
@@ -52,10 +53,25 @@ class GitDriver implements DriverInterface
             $this->getGit()->getAdapter()->execute('branch', ['--delete', '--force', 'dist'], $path);
             $this->getGit()->getAdapter()->execute('push', ['--tags'], $path);
         } catch (\Exception $e) {
-            $this->getGit()->getAdapter()->execute('reset', array('--hard'), $path);
-            $this->getGit()->getAdapter()->execute('tag', array('-d', $tag), $path);
+            $this->getGit()->getAdapter()->execute('reset', ['--hard'], $path);
+            $this->getGit()->getAdapter()->execute('tag', ['-d', $tag], $path);
             throw $e;
         }
+    }
+
+    /**
+     * @return Git
+     */
+    protected function getGit()
+    {
+        if (null === $this->git) {
+            $this->git = new Git($this->url);
+            /** @var CliAdapter $adapter */
+            $adapter = $this->git->getAdapter();
+            $adapter->setExecutable($this->executable);
+        }
+
+        return $this->git;
     }
 
     /**
@@ -74,7 +90,6 @@ class GitDriver implements DriverInterface
             }
         }
     }
-
 
     /**
      * @param array $files
@@ -119,7 +134,7 @@ class GitDriver implements DriverInterface
      */
     public function getLatestTag()
     {
-        $tags = array();
+        $tags = [];
         foreach ($this->getGit()->tags() as $reference) {
             /** @var Reference $reference */
             $tags[] = $reference->getName();
@@ -132,20 +147,5 @@ class GitDriver implements DriverInterface
         }
 
         return array_pop($tags);
-    }
-
-    /**
-     * @return Git
-     */
-    protected function getGit()
-    {
-        if (null === $this->git) {
-            $this->git = new Git($this->url);
-            /** @var CliAdapter $adapter */
-            $adapter = $this->git->getAdapter();
-            $adapter->setExecutable($this->executable);
-        }
-
-        return $this->git;
     }
 }

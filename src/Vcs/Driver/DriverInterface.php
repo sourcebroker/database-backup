@@ -1,4 +1,5 @@
 <?php
+
 namespace SourceBroker\DatabaseBackup\Vcs\Driver;
 
 /**

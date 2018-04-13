@@ -5,7 +5,8 @@ namespace SourceBroker\DatabaseBackup\DatabaseAccess;
 /**
  * Class BaseProvider
  */
-abstract class BaseProvider implements ProviderInterface {
+abstract class BaseProvider implements ProviderInterface
+{
 
     /**
      * @var string
@@ -52,14 +53,16 @@ abstract class BaseProvider implements ProviderInterface {
         $this->setting = $data;
         $this->key = $key;
         $this->dir = $data['tmpDir'];
-        $this->fileName =  uniqid(rand(), true) . $key . '.cnf';
+        $this->fileName = uniqid(rand(), true) . $key . '.cnf';
         $this->preProcess();
     }
 
     /**
      * PreProcess function
      */
-    protected function preProcess(){}
+    protected function preProcess()
+    {
+    }
 
     /**
      * Create file with database access
@@ -74,8 +77,7 @@ abstract class BaseProvider implements ProviderInterface {
                 . "password = '{$this->password}'\n"
                 . "host = '{$this->host}'\n"
                 . "port = '{$this->port}'\n"
-                . "\n"
-            ;
+                . "\n";
             file_put_contents($this->dir . '/' . $this->fileName, $mysql . $data . $mysqlDump . $data);
             return $this->dir . '/' . $this->fileName;
         } else {

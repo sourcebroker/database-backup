@@ -2,7 +2,8 @@
 
 namespace SourceBroker\DatabaseBackup\DatabaseAccess;
 
-interface ProviderInterface {
+interface ProviderInterface
+{
 
     /**
      * @return string

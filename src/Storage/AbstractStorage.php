@@ -25,15 +25,6 @@ abstract class AbstractStorage implements StorageInterface
     /**
      * {@inheritdoc}
      */
-    public function setSettings($settings)
-    {
-        $this->settings = $settings;
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getSettings()
     {
         return $this->settings;
@@ -42,9 +33,9 @@ abstract class AbstractStorage implements StorageInterface
     /**
      * {@inheritdoc}
      */
-    public function setGlobalConfig($config)
+    public function setSettings($settings)
     {
-        $this->globalConfig = $config;
+        $this->settings = $settings;
         return $this;
     }
 
@@ -59,9 +50,9 @@ abstract class AbstractStorage implements StorageInterface
     /**
      * {@inheritdoc}
      */
-    public function setKey($key)
+    public function setGlobalConfig($config)
     {
-        $this->key = $key;
+        $this->globalConfig = $config;
         return $this;
     }
 
@@ -71,6 +62,15 @@ abstract class AbstractStorage implements StorageInterface
     public function getKey()
     {
         return $this->key;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setKey($key)
+    {
+        $this->key = $key;
+        return $this;
     }
 
 

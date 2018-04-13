@@ -22,7 +22,8 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Class DatabaseBackupCommand
  */
-class DatabaseBackupCommand extends BaseCommand {
+class DatabaseBackupCommand extends BaseCommand
+{
 
     /**
      * @var ProviderInterface[]
@@ -47,8 +48,7 @@ class DatabaseBackupCommand extends BaseCommand {
                 null,
                 InputOption::VALUE_NONE,
                 'Run command to check configuration'
-            )
-        ;
+            );
     }
 
     protected function afterInitialize(InputInterface $input, OutputInterface $output)
@@ -76,6 +76,35 @@ class DatabaseBackupCommand extends BaseCommand {
         }
 
         parent::afterInitialize($input, $output);
+    }
+
+    /**
+     * @param $path
+     * @return mixed
+     */
+    protected function readYamlConfiguration($path)
+    {
+        if (empty($realPath = $this->container->get(PathService::class)->checkIfFileOrDirectoryExist($path))) {
+            throw new FileNotFoundException(null, 0, null, $path);
+        }
+        return Yaml::parseFile($realPath);
+    }
+
+    /**
+     * @param $data
+     * @param null $key
+     */
+    protected function checkDatabaseAccess(&$data, $key = null)
+    {
+        if (isset($data['databaseAccess'])) {
+            /** @var ProviderInterface $provider */
+            $provider = $this->container->get('database_access')->getInstance($data, $key);
+            $newPath = $provider->process();
+            if ($newPath) {
+                $this->databaseAccessProviders[] = $provider;
+                $data['defaultsFile'] = $newPath;
+            }
+        }
     }
 
     /**
@@ -135,35 +164,6 @@ class DatabaseBackupCommand extends BaseCommand {
 
         foreach ($this->databaseAccessProviders as $provider) {
             $provider->clean();
-        }
-    }
-
-    /**
-     * @param $path
-     * @return mixed
-     */
-    protected function readYamlConfiguration($path)
-    {
-        if (empty($realPath = $this->container->get(PathService::class)->checkIfFileOrDirectoryExist($path))) {
-            throw new FileNotFoundException(null, 0, null, $path);
-        }
-        return Yaml::parseFile($realPath);
-    }
-
-    /**
-     * @param $data
-     * @param null $key
-     */
-    protected function checkDatabaseAccess(&$data, $key = null)
-    {
-        if (isset($data['databaseAccess'])) {
-            /** @var ProviderInterface $provider */
-            $provider = $this->container->get('database_access')->getInstance($data, $key);
-            $newPath = $provider->process();
-            if ($newPath) {
-                $this->databaseAccessProviders[] = $provider;
-                $data['defaultsFile'] = $newPath;
-            }
         }
     }
 }

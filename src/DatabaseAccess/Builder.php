@@ -7,7 +7,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Class Builder
  */
-class Builder {
+class Builder
+{
 
     /**
      * @var ContainerInterface

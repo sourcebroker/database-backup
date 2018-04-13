@@ -15,17 +15,17 @@ class LocalStorage extends AbstractStorage
         foreach ($files as $file) {
             if (file_exists($file)) {
                 copy($file, $this->getPath() . '/' . basename($file));
-                $parts = array_map(function($v) {
+                $parts = array_map(function ($v) {
                     if (strpos($v, ':') !== false) {
                         list($key, $value) = explode(':', $v);
                         if ($key == 'key') {
-                            $v = implode(':', [$key,'*']);
+                            $v = implode(':', [$key, '*']);
                         }
                     } else {
                         $v = '*';
                     }
                     return $v;
-                }, explode('#', basename($file ,'.sql.zip')));
+                }, explode('#', basename($file, '.sql.zip')));
                 $this->removeOutdatedDumps(
                     $this->getPath() . '/' . implode('#', $parts) . '.sql.zip',
                     $this->globalConfig['cron']['howMany']

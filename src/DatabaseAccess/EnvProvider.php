@@ -7,7 +7,8 @@ use Symfony\Component\Dotenv\Dotenv;
 /**
  * Class EnvProvider
  */
-class EnvProvider extends BaseProvider {
+class EnvProvider extends BaseProvider
+{
 
     /**
      * @var Dotenv

@@ -111,22 +111,18 @@ abstract class BaseCommand extends Command
         $this->container = new ContainerBuilder();
 
         $this->container
-            ->register(PathService::class, PathService::class)
-        ;
+            ->register(PathService::class, PathService::class);
 
         $this->container
             ->register(DatabaseBackupService::class, DatabaseBackupService::class)
-            ->addArgument($this->container)
-        ;
+            ->addArgument($this->container);
 
         $this->container
-            ->register('local_storage', LocalStorage::class)
-        ;
+            ->register('local_storage', LocalStorage::class);
 
         $this->container
             ->register('database_access', Builder::class)
-            ->setArgument('container', $this->container)
-        ;
+            ->setArgument('container', $this->container);
 
         $this->afterInitialize($input, $output);
     }
@@ -135,5 +131,7 @@ abstract class BaseCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      */
-    protected function afterInitialize(InputInterface $input, OutputInterface $output){}
+    protected function afterInitialize(InputInterface $input, OutputInterface $output)
+    {
+    }
 }

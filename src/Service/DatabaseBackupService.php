@@ -8,7 +8,8 @@ use SourceBroker\DatabaseBackup\Configuration\CommandConfiguration;
 /**
  * Class DatabaseBackupService
  */
-class DatabaseBackupService {
+class DatabaseBackupService
+{
 
     /**
      * @var array
@@ -106,9 +107,9 @@ class DatabaseBackupService {
                 $blacklistPattern = $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_BLACKLIST];
                 if ($applicationDetected !== null && $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_APPLICATION_BOOLEAN]) {
                     $whitelistPattern = array_merge(
-                            $whitelistPattern,
-                            $this->getWhitelistPatternFromApplication($applicationDetected)
-                        );
+                        $whitelistPattern,
+                        $this->getWhitelistPatternFromApplication($applicationDetected)
+                    );
 
                     $blacklistPattern = array_merge(
                         $blacklistPattern,
@@ -138,7 +139,9 @@ class DatabaseBackupService {
             }
 
             $tempFile = $this->config[CommandConfiguration::KEY_TMP_DIR] . '/' . implode('#', [
-                    'database:' . $database, 'key:' . $this->key, $dateForFilename
+                    'database:' . $database,
+                    'key:' . $this->key,
+                    $dateForFilename
                 ]);
 
             $command =
@@ -162,65 +165,6 @@ class DatabaseBackupService {
     }
 
     /**
-     * @param $application
-     * @param $tables
-     * @return array
-     */
-    protected function getWhitelistTablesFromApplication($application, $tables)
-    {
-        return
-            $this->filterWithRegexp(
-                $this->getWhitelistPatternFromApplication($application),
-                (array)$tables
-            );
-    }
-
-    /**
-     * @param $application
-     * @param $tables
-     * @return array
-     */
-    protected function getBlacklistTablesFromApplication($application, $tables)
-    {
-        return
-            $this->filterWithRegexp(
-                $this->getBlacklistPatternFromApplication($application),
-                (array)$tables
-            );
-    }
-
-    /**
-     * @param $application
-     * @return mixed
-     */
-    protected function getWhitelistPatternFromApplication($application)
-    {
-        return
-            $this->config
-            [CommandConfiguration::KEY_APPLICATION]
-            [$application]
-            [CommandConfiguration::KEY_TABLES]
-            [CommandConfiguration::KEY_WHITELIST]
-            ;
-    }
-
-    /**
-     * @param $application
-     * @return mixed
-     */
-    protected function getBlacklistPatternFromApplication($application)
-    {
-        return
-            $this->config
-                [CommandConfiguration::KEY_APPLICATION]
-                [$application]
-                [CommandConfiguration::KEY_TABLES]
-                [CommandConfiguration::KEY_BLACKLIST]
-            ;
-    }
-
-
-    /**
      * @param $command string Command to execute
      * @return array Array of output lines
      * @throws \Exception
@@ -228,7 +172,8 @@ class DatabaseBackupService {
     protected function runMysqlCommand($command)
     {
         exec($this->config[CommandConfiguration::KEY_BINARY_DB_COMMAND] . ' --defaults-file=' .
-            escapeshellarg($this->config[CommandConfiguration::KEY_DEFAULTS_FILE]) . ' -B -s -e "' . $command . '" ', $output,
+            escapeshellarg($this->config[CommandConfiguration::KEY_DEFAULTS_FILE]) . ' -B -s -e "' . $command . '" ',
+            $output,
             $status);
         if ($status !== 0) {
             throw new \Exception('The execution of mysql command: "' . $command . '" failed with following output:' . print_r($output,
@@ -281,12 +226,69 @@ class DatabaseBackupService {
     {
         $applicationDetected = null;
         foreach ($applications as $application => $data) {
-            if (array_intersect($data[CommandConfiguration::KEY_TABLES][CommandConfiguration::KEY_DETECTION], $tables)) {
+            if (array_intersect($data[CommandConfiguration::KEY_TABLES][CommandConfiguration::KEY_DETECTION],
+                $tables)) {
                 $applicationDetected = $application;
                 break;
             }
         }
         return $applicationDetected;
+    }
+
+    /**
+     * @param $application
+     * @return mixed
+     */
+    protected function getWhitelistPatternFromApplication($application)
+    {
+        return
+            $this->config
+            [CommandConfiguration::KEY_APPLICATION]
+            [$application]
+            [CommandConfiguration::KEY_TABLES]
+            [CommandConfiguration::KEY_WHITELIST];
+    }
+
+    /**
+     * @param $application
+     * @return mixed
+     */
+    protected function getBlacklistPatternFromApplication($application)
+    {
+        return
+            $this->config
+            [CommandConfiguration::KEY_APPLICATION]
+            [$application]
+            [CommandConfiguration::KEY_TABLES]
+            [CommandConfiguration::KEY_BLACKLIST];
+    }
+
+    /**
+     * @param $application
+     * @param $tables
+     * @return array
+     */
+    protected function getWhitelistTablesFromApplication($application, $tables)
+    {
+        return
+            $this->filterWithRegexp(
+                $this->getWhitelistPatternFromApplication($application),
+                (array)$tables
+            );
+    }
+
+    /**
+     * @param $application
+     * @param $tables
+     * @return array
+     */
+    protected function getBlacklistTablesFromApplication($application, $tables)
+    {
+        return
+            $this->filterWithRegexp(
+                $this->getBlacklistPatternFromApplication($application),
+                (array)$tables
+            );
     }
 
 

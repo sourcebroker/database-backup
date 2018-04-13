@@ -14,16 +14,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class CommandConfiguration implements ConfigurationInterface
 {
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
-     * @var boolean
-     */
-    protected $configsRequire;
-
     const KEY_DEFAULTS_FILE = 'defaultsFile';
     const KEY_BINARY_DB_COMMAND = 'binaryDbCommand';
     const KEY_BINARY_DB_EXPORT = 'binaryDbExport';
@@ -54,6 +44,16 @@ class CommandConfiguration implements ConfigurationInterface
     const KEY_DATABASE_ACCESS_DATA_PASSWORD = 'password';
     const KEY_DATABASE_ACCESS_DATA_PORT = 'port';
     const KEY_DATABASE_ACCESS_DATA_HOST = 'host';
+
+    /**
+     * @var ContainerInterface
+     */
+    protected $container;
+
+    /**
+     * @var boolean
+     */
+    protected $configsRequire;
 
     /**
      * CommandConfiguration constructor.
@@ -88,8 +88,7 @@ class CommandConfiguration implements ConfigurationInterface
                     ->append($this->getPresets())
                 ->end()
                 ->append($this->getConfigsNode())
-            ->end()
-        ;
+            ->end();
 
         return $treeBuilder;
     }
@@ -493,8 +492,7 @@ class CommandConfiguration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-            ->end()
-        ;
+            ->end();
         return $node;
     }
 }

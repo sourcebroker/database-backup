@@ -25,8 +25,7 @@ class DefaultConfigurationCommand extends BaseCommand
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Get value by key'
-            )
-        ;
+            );
     }
 
     protected function afterInitialize(InputInterface $input, OutputInterface $output)

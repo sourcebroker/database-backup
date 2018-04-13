@@ -7,7 +7,8 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 /**
  * Class PhpProvider
  */
-class PhpProvider extends BaseProvider {
+class PhpProvider extends BaseProvider
+{
 
     /**
      * PreProcess
@@ -30,14 +31,16 @@ class PhpProvider extends BaseProvider {
     /**
      * {@inheritdoc}
      */
-    public function process(){
+    public function process()
+    {
         return $this->createFile();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function clean(){
+    public function clean()
+    {
         $this->removeFile();
         return $this;
     }
