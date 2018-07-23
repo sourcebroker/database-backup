@@ -21,10 +21,6 @@ Features
 * Detects what application uses database and ignores tables which are not important (like
   caching tables). Whitelist / blacklists for detected application database.
 
-* Detects what application uses database and ignores tables which are not important (like
-  caching tables). Whitelist / blacklists for detected application database. Whitelist
-  / blacklists presets for detected application database.
-
 * Databases whitelist / blacklists.
 
 * Prepared to support different storages (so far only "local" storage is supported).
