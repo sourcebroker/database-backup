@@ -5,6 +5,7 @@ namespace SourceBroker\DatabaseBackup\Command;
 use Cron\CronExpression;
 use Exception;
 use SourceBroker\DatabaseBackup\Configuration\CommandConfiguration;
+use SourceBroker\DatabaseBackup\Configuration\ConfigurationMerger;
 use SourceBroker\DatabaseBackup\DatabaseAccess\ProviderInterface;
 use SourceBroker\DatabaseBackup\Service\DatabaseBackupService;
 use SourceBroker\DatabaseBackup\Service\PathService;
@@ -55,8 +56,7 @@ class DatabaseBackupCommand extends BaseCommand
     {
         $input->validate();
         $output->writeln("<info>➤</info> Reading configuration from <comment>{$input->getArgument('yaml')}</comment>");
-        $processor = new Processor();
-        $configuration = new CommandConfiguration($this->container);
+
         $mergedConfigArray = array_replace_recursive(
             [
                 'defaults' => $this->defaultConfiguration
@@ -64,14 +64,15 @@ class DatabaseBackupCommand extends BaseCommand
             $this->readYamlConfiguration($input->getArgument('yaml'))
         );
 
+        $configurationMerger = new ConfigurationMerger();
+        $mergedConfigArray = $configurationMerger->process($mergedConfigArray);
+
+        $processor = new Processor();
+        $configuration = new CommandConfiguration($this->container);
         $this->config = $processor->processConfiguration($configuration, ['configuration' => $mergedConfigArray]);
-        $this->checkDatabaseAccess($this->config['defaults']);
-        foreach ($this->config['configs'] as $configKey => &$config) {
-            foreach ($this->config['defaults'] as $key => $default) {
-                if (!isset($config[$key]) || empty($config[$key])) {
-                    $config[$key] = $default;
-                }
-            }
+
+        $this->checkDatabaseAccess($this->config[CommandConfiguration::KEY_DEFAULTS]);
+        foreach ($this->config[CommandConfiguration::KEY_CONFIGS] as $configKey => &$config) {
             $this->checkDatabaseAccess($config, $configKey);
         }
 
@@ -129,8 +130,19 @@ class DatabaseBackupCommand extends BaseCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         foreach ($this->config['configs'] as $key => $config) {
-            if (CronExpression::factory((string)$config['cron']['pattern'])->isDue()) {
+            $toRun = CronExpression::factory((string)$config['cron']['pattern'])->isDue();
+
+            if (!empty($config[CommandConfiguration::KEY_CRON][CommandConfiguration::KEY_CRON_ON_DEMAND])) {
+                $toRun &= $this->checkOnDemandFlag($key);
+            }
+
+            if ($toRun) {
                 $output->writeln("<info>➤</info> Executing database backup for key <comment>{$key}</comment>");
+
+                if (!empty($config[CommandConfiguration::KEY_CRON][CommandConfiguration::KEY_CRON_ON_DEMAND])) {
+                    $output->writeln("<info>➤</info> Remove <comment>on demand</comment> flag");
+                    $this->deleteOnDemandFlag($key);
+                }
 
                 if ($input->getOption('dry-run') === false) {
                     $paths = $backupService = $this->container
@@ -166,4 +178,33 @@ class DatabaseBackupCommand extends BaseCommand
             $provider->clean();
         }
     }
+
+    /**
+     * Checks should "on demand" backup mode should be executed.
+     * This condition depends on existance of flag in defined directory.
+     *
+     * @param string $backupMode
+     * @return bool
+     */
+    protected function checkOnDemandFlag(string $backupMode): bool
+    {
+        $path = $this->config[CommandConfiguration::KEY_CONFIGS][$backupMode][CommandConfiguration::KEY_FLAG_DIR]
+            . DIRECTORY_SEPARATOR. strtolower($backupMode);
+        return file_exists($path);
+    }
+
+    /**
+     * Delete "on demand" flag for given backup mode.
+     *
+     * @param string $backupMode
+     */
+    protected function deleteOnDemandFlag(string $backupMode)
+    {
+        $path = $this->config[CommandConfiguration::KEY_CONFIGS][$backupMode][CommandConfiguration::KEY_FLAG_DIR]
+            . DIRECTORY_SEPARATOR . strtolower($backupMode);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
 }

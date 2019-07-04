@@ -14,6 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class CommandConfiguration implements ConfigurationInterface
 {
+    const KEY_DEFAULTS = 'defaults';
     const KEY_DEFAULTS_FILE = 'defaultsFile';
     const KEY_BINARY_DB_COMMAND = 'binaryDbCommand';
     const KEY_BINARY_DB_EXPORT = 'binaryDbExport';
@@ -26,16 +27,19 @@ class CommandConfiguration implements ConfigurationInterface
     const KEY_BLACKLIST_PRESETS = 'blacklistPresets';
     const KEY_APPLICATION_BOOLEAN = 'application';
     const KEY_TABLES = 'tables';
+    const KEY_TABLES_DEFAULT = '_default_';
     const KEY_DATABASES = 'databases';
     const KEY_CONFIGS = 'configs';
     const KEY_CRON = 'cron';
     const KEY_CRON_PATTERN = 'pattern';
     const KEY_CRON_HOW_MANY = 'howMany';
+    const KEY_CRON_ON_DEMAND = 'onDemand';
     const KEY_STORAGE = 'storage';
     const KEY_STORAGE_LOCAL = 'local';
     const KEY_STORAGE_LOCAL_PATH = 'path';
     const KEY_PRESETS = 'presets';
     const KEY_TMP_DIR = 'tmpDir';
+    const KEY_FLAG_DIR = 'flagDir';
     const KEY_DATABASE_ACCESS = 'databaseAccess';
     const KEY_DATABASE_ACCESS_TYPE = 'type';
     const KEY_DATABASE_ACCESS_PATH = 'path';
@@ -76,6 +80,7 @@ class CommandConfiguration implements ConfigurationInterface
                 ->arrayNode('defaults')
                     ->addDefaultsIfNotSet()
                     ->append($this->getTmpDir())
+                    ->append($this->getFlagDir())
                     ->append($this->getDefaultsFile())
                     ->append($this->getDatabaseAccess())
                     ->append($this->getBinaryDbCommand())
@@ -114,6 +119,7 @@ class CommandConfiguration implements ConfigurationInterface
                 ->children()
                     ->append($this->getCron())
                     ->append($this->getTmpDir())
+                    ->append($this->getFlagDir())
                     ->append($this->getDefaultsFile())
                     ->append($this->getDatabaseAccess())
                     ->append($this->getBinaryDbCommand())
@@ -192,6 +198,26 @@ class CommandConfiguration implements ConfigurationInterface
     protected function getTmpDir()
     {
         $node = new ScalarNodeDefinition(self::KEY_TMP_DIR);
+        $node
+            ->beforeNormalization()
+                ->always(function ($value) {
+                    $path = $this->container->get(PathService::class)->checkIfFileOrDirectoryExist($value, true);
+                    if ($path) {
+                        $this->container->get(PathService::class)->checkHtaccessFile($path);
+                    }
+                    return $path;
+                })
+            ->end()
+            ->cannotBeEmpty();
+        return $node;
+    }
+
+    /**
+     * @return ScalarNodeDefinition
+     */
+    protected function getFlagDir()
+    {
+        $node = new ScalarNodeDefinition(self::KEY_FLAG_DIR);
         $node
             ->beforeNormalization()
                 ->always(function ($value) {
@@ -450,6 +476,9 @@ class CommandConfiguration implements ConfigurationInterface
                     ->defaultValue(5)
                     ->min(1)
                     ->max(99)
+                ->end()
+                ->booleanNode(self::KEY_CRON_ON_DEMAND)
+                    ->defaultValue(false)
                 ->end()
             ->end();
         return $node;

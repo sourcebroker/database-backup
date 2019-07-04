@@ -1,0 +1,101 @@
+defaults:
+  databases:
+    whitelist:
+      - "magento2_table_name"
+
+configs:
+  # Daily
+  daily:
+    cron:
+      howMany: 7
+      pattern: "0 1 * * *"
+
+    tables:
+      _default_:
+        blacklist:
+          - "^catalog_category_flat.*"
+          - "^catalog_category_product_index.*"
+          - "^catalog_product_index.*"
+          - "^catalog_product_flat.*"
+          - "^core_cache.*"
+          - "^core_session$"
+          - "^dataflow_batch_.*"
+          - "^index_event$"
+          - "^index_process_event$"
+          - "^log_.*"
+          - "^report_event$"
+          - "^report_viewed_product_.*"
+          - ".*_log$"
+          - ".*_cl$"
+
+  # Weekly
+  weekly:
+    cron:
+      howMany: 8
+      pattern: "0 2 2 * *"
+
+  # Catalog (on demand)
+  catalogOnDemand:
+    cron:
+      howMany: 10
+      pattern: "* * * * *"
+      onDemand: 1
+
+    tables:
+      _default_:
+        whitelist:
+          - "^cataloginventory_.*"
+          - "^catalogrule_.*"
+          - "^catalog_.*"
+          - "^downloadable_.*"
+          - "^eav_.*"
+          - "^inventory_.*"
+        blacklist:
+          - "^catalog_category_flat.*"
+          - "^catalog_category_product_index.*"
+          - "^catalog_product_index.*"
+          - "^catalog_product_flat.*"
+          - ".*_index_.*"
+
+  # Config (on demand)
+  configOnDemand:
+    cron:
+      howMany: 10
+      pattern: "* * * * *"
+      onDemand: 1
+
+    tables:
+      _default_:
+        whitelist:
+          - "core_config_data"
+
+  # Customer (on demand)
+  customerOnDemand:
+    cron:
+      howMany: 10
+      pattern: "* * * * *"
+      onDemand: 1
+
+    tables:
+      _default_:
+        whitelist:
+          - "^customer_.*"
+          - "^eav_.*"
+          - "^newsletter_subscriber$"
+          - "^wishlist.*"
+        blacklist:
+          - ".*_log"
+
+  # Sales (on demand)
+  salesOnDemand:
+    cron:
+      howMany: 10
+      pattern: "* * * * *"
+      onDemand: 1
+
+    tables:
+      _default_:
+        whitelist:
+          - "^sales_.*"
+          - "^quote_.*"
+          - "^eav_.*"

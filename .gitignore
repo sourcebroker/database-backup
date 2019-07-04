@@ -2,6 +2,7 @@
 .env
 .dump
 .tmp
+.flag
 /var/
 /vendor/
 /backup

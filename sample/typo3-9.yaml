@@ -1,0 +1,17 @@
+defaults:
+  databases:
+    whitelist:
+      - "typo3_t3base9"
+
+configs:
+  # Daily
+  daily:
+    cron:
+      howMany: 7
+      pattern: "0 1 * * *"
+
+  # Weekly
+  weekly:
+    cron:
+      howMany: 8
+      pattern: "0 2 2 * *"

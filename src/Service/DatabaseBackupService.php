@@ -102,28 +102,25 @@ class DatabaseBackupService
 
             $blacklistTables = [];
             $whitelistTables = $tables;
-            if (isset($this->config[CommandConfiguration::KEY_TABLES][$database])) {
-                $whitelistPattern = $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_WHITELIST];
-                $blacklistPattern = $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_BLACKLIST];
-                if ($applicationDetected !== null && $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_APPLICATION_BOOLEAN]) {
-                    $whitelistPattern = array_merge(
-                        $whitelistPattern,
-                        $this->getWhitelistPatternFromApplication($applicationDetected)
-                    );
+            if (isset($this->config[CommandConfiguration::KEY_TABLES][$database]) || isset($this->config[CommandConfiguration::KEY_TABLES][CommandConfiguration::KEY_TABLES_DEFAULT])) {
+                $whitelistPattern = $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_WHITELIST]
+                    ?? $this->config[CommandConfiguration::KEY_TABLES][CommandConfiguration::KEY_TABLES_DEFAULT][CommandConfiguration::KEY_WHITELIST];
+                $blacklistPattern = $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_BLACKLIST]
+                    ?? $this->config[CommandConfiguration::KEY_TABLES][CommandConfiguration::KEY_TABLES_DEFAULT][CommandConfiguration::KEY_BLACKLIST];
+                $useApplication = $this->config[CommandConfiguration::KEY_TABLES][$database][CommandConfiguration::KEY_APPLICATION_BOOLEAN]
+                    ?? $this->config[CommandConfiguration::KEY_TABLES][CommandConfiguration::KEY_TABLES_DEFAULT][CommandConfiguration::KEY_APPLICATION_BOOLEAN];
 
-                    $blacklistPattern = array_merge(
-                        $blacklistPattern,
-                        $this->getBlacklistPatternFromApplication($applicationDetected)
-                    );
+                if ($applicationDetected !== null && $useApplication) {
+                    if (empty($whitelistPattern)) {
+                        $whitelistPattern = $this->getWhitelistPatternFromApplication($applicationDetected);
+                    }
+                    if (empty($blacklistPattern)) {
+                        $blacklistPattern = $this->getBlacklistPatternFromApplication($applicationDetected);
+                    }
                 }
-                $whitelistTables = $this->filterWithRegexp(
-                    $whitelistPattern,
-                    (array)$tables
-                );
-                $blacklistTables = $this->filterWithRegexp(
-                    $blacklistPattern,
-                    (array)$tables
-                );
+
+                $whitelistTables = $this->filterWithRegexp($whitelistPattern, (array)$tables);
+                $blacklistTables = $this->filterWithRegexp($blacklistPattern, (array)$tables);
             } else {
                 if ($applicationDetected !== null) {
                     $whitelistTables = $this->getWhitelistTablesFromApplication($applicationDetected, $tables);

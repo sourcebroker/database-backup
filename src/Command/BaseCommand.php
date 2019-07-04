@@ -29,6 +29,7 @@ abstract class BaseCommand extends Command
 
     protected $defaultConfiguration = [
         'tmpDir' => '.tmp',
+        'flagDir' => '.flag',
 
         'defaultsFile' => '~/.my.cnf',
 
