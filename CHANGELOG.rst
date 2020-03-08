@@ -2,6 +2,11 @@
 Changelog
 ---------
 
+master
+~~~~~~
+
+1) Remove composer.lock from repo.
+
 2.0.0
 ~~~~~
 
